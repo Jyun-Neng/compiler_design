@@ -7,7 +7,7 @@ Compiler Design
 - [ ] Parser
 - [ ] Code Generator
 ## Scanner
-> [name=JyunNeng Ji] [time=Wen, May 16, 2018]
+> 更新時間: Wen, May 16, 2018
 
 Scanner 目的為讀取 source file 切成一個個 token，並分類每個 token 的型態。
 #### Data Type Define
@@ -97,7 +97,7 @@ digraph Scanner {
 + ```fptr``` 為讀取的 source file。
 
 ## Test
-> [name=JyunNeng Ji] [time=Wen, May 16, 2018]
+> 更新時間: Wen, May 16, 2018
 
 在終端機執行以下指令，可得到 Scanner 的測試結果。
 ```
