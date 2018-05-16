@@ -48,7 +48,7 @@ ENDFILE    EOF
 OTHER      []{},#&...
 ```
 其中，```if else switch case while char int bool True False```為保留字 (reserved word)。
-#### Determine Finite Automata
+#### Deterministic Finite Automata
 下圖為scanner的DFA(Determine Finite Automata)。
 ![Scanner](doc/scanner.png)
 #### How To Use
