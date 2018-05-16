@@ -1,0 +1,206 @@
+#include "scanner.h"
+
+#define MAXTOKENLEN 40
+#define MAXRESERVED 11
+
+typedef enum {
+  START, INID, INNUM, INASSIGN, INLT, INGT, INNE, INSIGN, 
+  INCOMMENT, SINGLE, MULTI, DONE 
+} StateType;
+
+static struct {
+  char *str;
+  TokenType tok;
+} reserved_words[MAXRESERVED] = {
+  {"if", IF}, {"else", ELSE}, {"switch", SWITCH}, {"case", CASE}, {"while", WHILE},
+  {"int", INT}, {"boolean", BOOLEAN}, {"char", CHAR}, {"string", STRING},
+  {"False", FALSE}, {"True", TRUE}
+};
+
+TokenType reservedLookUp(char *str) {
+  for (int i=0; i<MAXRESERVED; ++i) {
+    if (!strcmp(str, reserved_words[i].str)) 
+      return reserved_words[i].tok;
+  }
+  return ID;
+}
+
+TokenType getToken() {
+  TokenType current_token;
+  StateType state = START;
+  int token_index = 0;
+  int save;
+  char c, nc;
+
+  while (state != DONE) {
+    c = getc(fptr);  
+    save = 1;
+    switch (state) {
+      case START:
+        if (c == EOF) {
+          save = 0;
+          state = DONE;
+          current_token = ENDFILE;
+        }  
+        else if (isdigit(c)) state = INNUM;
+        else if (isalpha(c)) state = INID;
+        else if (c == ' ' || c == '\t' || c == '\n') {
+          state = START; 
+          save = 0;
+        }
+        else if (c == '/') {
+          state = INCOMMENT;
+          save = 0;
+        }
+        else if (c == '=') state = INASSIGN; 
+        else if (c == '<') state = INLT;
+        else if (c == '>') state = INGT;
+        else if (c == '!') state = INNE;
+        else if (c == '+' || c == '-') {
+          state = INSIGN;
+          current_token = (c == '+') ? PLUS : MINUS;
+        }
+        else {
+          state = DONE;
+          switch (c) {
+            case '(':
+              current_token = LPAREN;
+              break;
+            case ')':
+              current_token = RPAREN;
+              break;
+            case '%':
+              current_token = MODULO;
+              break;
+            case '*':
+              current_token = TIMES;
+              break;
+            case ':':
+              current_token = COLON;
+              break;
+            case ';':
+              current_token = SEMI;
+              break;
+            default:
+              current_token = OTHER;
+              break;   
+          }
+        }
+        break;
+      case INLT:
+        state = DONE;
+        if (c == '=') 
+          current_token = LE;
+        else {
+          save = 0;
+          ungetc(c, fptr);
+          current_token = LT;
+        }    
+        break;
+      case INGT:
+        state = DONE;
+        if (c == '=') 
+          current_token = GE;
+        else {
+          save = 0;
+          ungetc(c, fptr);
+          current_token = GT;
+        }    
+        break;
+      case INNE:
+        state = DONE;
+        if (c == '=') 
+          current_token = NE;
+        else {
+          save = 0;
+          ungetc(c, fptr);
+          current_token = NOT;
+        }    
+        break;
+      case INSIGN:
+        if (!isdigit(c)) {
+          save = 0;  
+          state = DONE;
+          ungetc(c, fptr);
+        }
+        else state = INNUM;
+        break;
+      case INCOMMENT:
+        save = 0;
+        if (c == '/') state = SINGLE;
+        else if (c == '*') state = MULTI;
+        else {
+          state = DONE;
+          ungetc(c, fptr);
+          current_token = OVER;
+        }
+        break;
+      case SINGLE:
+        save = 0;
+        if (c == '\n') {
+          state = DONE;
+          current_token = COMMENT;
+        }
+        break;
+      case MULTI:
+        save = 0;
+        if (c == '*') {
+          nc = getc(fptr);
+          if (nc == '/') {
+            state = DONE;
+            current_token = COMMENT;
+          }
+          else ungetc(nc, fptr);
+        }
+        break;
+      case INASSIGN:
+        state = DONE;
+        if (c == '=') current_token = EQ;
+        else {
+          save = 0;  
+          ungetc(c, fptr);  
+          current_token = ASSIGN;
+        }
+        break;
+      case INNUM:
+        if (!isdigit(c)) {
+          save = 0;
+          ungetc(c, fptr);  
+          state = DONE;  
+          current_token = NUM;
+        }
+        break;
+      case INID:
+        if (!isalnum(c)) {
+          save = 0;
+          ungetc(c, fptr);
+          state = DONE;
+          current_token = ID;
+        }
+        break;  
+      default:
+        break;  
+    }
+    if (save && token_index < MAXTOKENLEN) token[token_index++] = c;
+    if (state == DONE) {
+      token[token_index] = '\0';
+      if (current_token == ID)
+        current_token = reservedLookUp(token);
+    } 
+  }
+  return current_token;
+}
+/*
+int main(int argc, const char *argv[])
+{
+    char c;
+    TokenType t;
+    fptr = fopen(argv[1], "r");
+    while ((c=getc(fptr)) != EOF) {
+      ungetc(c, fptr);
+      t = getToken();
+      printf("token type %u\n", t);
+    }
+    return 0;
+}
+*/
