@@ -50,46 +50,7 @@ OTHER      []{},#&...
 其中，```if else switch case while char int bool True False```為保留字 (reserved word)。
 #### Determine Finite Automata
 下圖為scanner的DFA(Determine Finite Automata)。
-```graphviz
-digraph Scanner {
-        rankdir=LR;
-        node [shape = ellipse];
-        START   -> START   [label = "white space"]
-        START   -> ID      [label = "letter"]
-        ID      -> ID      [label = "letter | digit"]
-        ID      -> DONE    [label = "others"]
-        START   -> NUM     [label = "digit"]
-        NUM     -> NUM     [label = "digit"]
-        NUM     -> DONE    [label = "others"]
-        START   -> SIGN    [label = "+ | -"]
-        SIGN    -> NUM     [label = "digit"]
-        SIGN    -> DONE    [label = "others"]
-        START   -> ASSIGN  [label = "="]
-        ASSIGN  -> EQ      [label = "="]
-        EQ      -> DONE    [label = "others"]
-        ASSIGN  -> DONE    [label = "others"]
-        START   -> LT      [label = "<"]
-        LT      -> LE      [label = "="]
-        LT      -> DONE    [label = "others"]
-        LE      -> DONE    [label = "others"]
-        START   -> GT      [label = ">"]
-        GT      -> GE      [label = "="]
-        GT      -> DONE    [label = "others"]
-        GE      -> DONE    [label = "others"]
-        START   -> NE      [label = "!"]
-        NE      -> DONE    [label = "="]
-        NE      -> DONE    [label = "others"]
-        START   -> DONE    [label = "others"]
-        START   -> COMMENT [label = "/"]
-        COMMENT -> SINGLE  [label = "/"]
-        SINGLE  -> SINGLE  [label = "others"]
-        SINGLE  -> DONE    [label = "newline"]
-        COMMENT -> MULTI   [label = "*"]
-        MULTI   -> MULTI   [label = "others"]
-        MULTI   -> DONE    [label = "*/"]
-        COMMENT -> DONE    [label = "others"]
-}
-```
+![Scanner](doc/scanner.png)
 #### How To Use
 在 Scanner，我們有一個 Function ```getToken()```、一個character array ```token```，以及一個 FILE 指標 ```fptr```。
 + ```getToken()``` 會回傳目前得到的 token 的 TokenType。
