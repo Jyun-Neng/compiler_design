@@ -1,7 +1,5 @@
+#include "global.h"
 #include "scanner.h"
-
-#define MAXTOKENLEN 40
-#define MAXRESERVED 11
 
 typedef enum {
   START, INID, INNUM, INASSIGN, INLT, INGT, INNE, INSIGN, 
@@ -14,7 +12,7 @@ static struct {
 } reserved_words[MAXRESERVED] = {
   {"if", IF}, {"else", ELSE}, {"switch", SWITCH}, {"case", CASE}, {"while", WHILE},
   {"int", INT}, {"boolean", BOOLEAN}, {"char", CHAR}, {"string", STRING},
-  {"False", FALSE}, {"True", TRUE}
+  {"False", FALSE}, {"True", TRUE}, {"main", MAIN}
 };
 
 TokenType reservedLookUp(char *str) {
@@ -33,7 +31,8 @@ TokenType getToken() {
   char c, nc;
 
   while (state != DONE) {
-    c = getc(fptr);  
+    c = getc(source);  
+    if (c == '\n') line_no ++;
     save = 1;
     switch (state) {
       case START:
@@ -44,7 +43,7 @@ TokenType getToken() {
         }  
         else if (isdigit(c)) state = INNUM;
         else if (isalpha(c)) state = INID;
-        else if (c == ' ' || c == '\t' || c == '\n') {
+        else if (c == ' ' || c == '\t' || c == '\n' || c == '\r') {
           state = START; 
           save = 0;
         }
@@ -81,6 +80,12 @@ TokenType getToken() {
             case ';':
               current_token = SEMI;
               break;
+            case '{':
+              current_token = LBRACE;
+              break;
+            case '}':
+              current_token = RBRACE;
+              break;  
             default:
               current_token = OTHER;
               break;   
@@ -93,7 +98,7 @@ TokenType getToken() {
           current_token = LE;
         else {
           save = 0;
-          ungetc(c, fptr);
+          ungetc(c, source);
           current_token = LT;
         }    
         break;
@@ -103,7 +108,7 @@ TokenType getToken() {
           current_token = GE;
         else {
           save = 0;
-          ungetc(c, fptr);
+          ungetc(c, source);
           current_token = GT;
         }    
         break;
@@ -113,7 +118,7 @@ TokenType getToken() {
           current_token = NE;
         else {
           save = 0;
-          ungetc(c, fptr);
+          ungetc(c, source);
           current_token = NOT;
         }    
         break;
@@ -121,7 +126,7 @@ TokenType getToken() {
         if (!isdigit(c)) {
           save = 0;  
           state = DONE;
-          ungetc(c, fptr);
+          ungetc(c, source);
         }
         else state = INNUM;
         break;
@@ -131,7 +136,7 @@ TokenType getToken() {
         else if (c == '*') state = MULTI;
         else {
           state = DONE;
-          ungetc(c, fptr);
+          ungetc(c, source);
           current_token = OVER;
         }
         break;
@@ -145,12 +150,12 @@ TokenType getToken() {
       case MULTI:
         save = 0;
         if (c == '*') {
-          nc = getc(fptr);
+          nc = getc(source);
           if (nc == '/') {
             state = DONE;
             current_token = COMMENT;
           }
-          else ungetc(nc, fptr);
+          else ungetc(nc, source);
         }
         break;
       case INASSIGN:
@@ -158,14 +163,14 @@ TokenType getToken() {
         if (c == '=') current_token = EQ;
         else {
           save = 0;  
-          ungetc(c, fptr);  
+          ungetc(c, source);  
           current_token = ASSIGN;
         }
         break;
       case INNUM:
         if (!isdigit(c)) {
           save = 0;
-          ungetc(c, fptr);  
+          ungetc(c, source);  
           state = DONE;  
           current_token = NUM;
         }
@@ -173,7 +178,7 @@ TokenType getToken() {
       case INID:
         if (!isalnum(c)) {
           save = 0;
-          ungetc(c, fptr);
+          ungetc(c, source);
           state = DONE;
           current_token = ID;
         }
