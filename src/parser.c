@@ -1,5 +1,5 @@
-#include "global.h"
 #include "parser.h"
+#include "global.h"
 #include "scanner.h"
 
 static TokenType current_token;
@@ -15,8 +15,9 @@ static void syntaxError(char *errmsg) {
 }
 
 static void match(TokenType expected) {
-  if (current_token == expected) current_token = getToken();
-  else {
+  if (current_token == expected) {
+    current_token = getToken();
+  } else {
     syntaxError("unexpected token -> ");
     fprintf(stdout, "%s\n", token);
     exit(1);
@@ -37,20 +38,20 @@ static void main_stmt() {
   if (current_token == MAIN) {
     current_token = getToken();
     match(LPAREN);
-    match(RPAREN); 
+    match(RPAREN);
     while (current_token == '\t' || current_token == '\n') {
       if ((current_token = getToken()) == LBRACE) break;
     }
     match(LBRACE);
     body();
-  }
-  else syntaxError("no main function"); 
+  } else
+    syntaxError("no main function");
 }
 
 static void body() {
   while (current_token != RBRACE) {
-      current_token = getToken();
-      if (current_token == ENDFILE) break;
+    current_token = getToken();
+    if (current_token == ENDFILE) break;
   }
   match(RBRACE);
 }
