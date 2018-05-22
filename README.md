@@ -4,10 +4,10 @@ Compiler Design
 實作一個簡單的Ｃ語言編譯器。
 - [x] Scanner (2018/05/16)
 - [x] Scanner Test (2018/05/16) 
-- [ ] Parser
+- [ ] Parser (正在進行) (2018/05/22)
 - [ ] Code Generator
 ## Scanner
-> 更新時間: Wen, May 16, 2018
+> 更新時間: Tue, May 22, 2018
 
 Scanner 目的為讀取 source file 切成一個個 token，並分類每個 token 的型態。
 #### Data Type Define
@@ -25,6 +25,7 @@ BOOLEAN    bool
 CHAR       char
 TRUE       True
 FALSE      False
+MAIN       main
 ID         [letter (letter|digit)*]
 NUM        [(+|-)|(digit)*]
 ASSIGN     =
@@ -43,25 +44,31 @@ SEMI       ;
 COLON      :
 LPAREN     (
 RPAREN     )
+LBRACE     {
+RBRACE     }
 COMMENT    //|/*
 ENDFILE    EOF
-OTHER      []{},#&...
+OTHER      [],#&...
 ```
-其中，```if else switch case while char int bool True False```為保留字 (reserved word)。
-#### Deterministic Finite Automata
+其中，```if else switch case while char int bool True False main```為保留字 (reserved word)。
+#### Determine Finite Automata
 下圖為scanner的DFA(Determine Finite Automata)。
 ![Scanner](doc/scanner.png)
 #### How To Use
 在 Scanner，我們有一個 Function ```getToken()```、一個character array ```token```，以及一個 FILE 指標 ```fptr```。
 + ```getToken()``` 會回傳目前得到的 token 的 TokenType。
 + ```token``` 為目前的 token string，此陣列的最大值由 ```MAXTOKENLEN``` 所定義。
-+ ```fptr``` 為讀取的 source file。
 
-## Test
+## Parser
+> 更新時間: Tue, May 22, 2018
+
+在這簡單的編譯器，我暫不考慮 preprocessor 而且只會有一個 main function 而不會有其他 function。Parser 首先會分析是否有註解 ```TokenType = COMMENT```，再來是分析 main function ```main() {program body}```，之後就是在 program body 分析各種不同的 statement (尚未完成)。
+
+## Execution
 > 更新時間: Wen, May 16, 2018
 
-在終端機執行以下指令，可得到 Scanner 的測試結果。
+在終端機執行以下指令。 
 ```
-make scanner
-./Test_scanner_x tb/file/test.cpp
+make
+./main_x tb/file/test.cpp
 ```
