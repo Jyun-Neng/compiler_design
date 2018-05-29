@@ -1,4 +1,5 @@
 #include "parser.h"
+#include "cgen.h"
 #include "global.h"
 #include "scanner.h"
 
@@ -31,7 +32,9 @@ void parser() {
     while (current_token == COMMENT) current_token = getToken();
   }
 
+  cgen('H');
   main_stmt();
+  cgen('E');
 }
 
 static void main_stmt() {
