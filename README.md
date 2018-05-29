@@ -4,8 +4,8 @@ Compiler Design
 實作一個簡單的Ｃ語言編譯器。
 - [x] Scanner (2018/05/16)
 - [x] Scanner Test (2018/05/16) 
-- [ ] Parser (正在進行) (2018/05/22)
-- [ ] Code Generator
+- [ ] Parser (正在進行) (2018/05/29)
+- [ ] Code Generator (正在進行) (2018/05/29)
 ## Scanner
 > 更新時間: Tue, May 22, 2018
 
@@ -60,9 +60,16 @@ OTHER      [],#&...
 + ```token``` 為目前的 token string，此陣列的最大值由 ```MAXTOKENLEN``` 所定義。
 
 ## Parser
-> 更新時間: Tue, May 22, 2018
+> 更新時間: Tue, May 29, 2018
 
 在這簡單的編譯器，我暫不考慮 preprocessor 而且只會有一個 main function 而不會有其他 function。Parser 首先會分析是否有註解 ```TokenType = COMMENT```，再來是分析 main function ```main() {program body}```，之後就是在 program body 分析各種不同的 statement (尚未完成)。
+
+我所實做的 Compiler 為 one parsing 技術，在 parsing 時便會直接產生組合語言。
+
+## Code Generator
+> 更新時間: Tue, May 29, 2018
+
+Code generator 目的為產生 x86 組合語言提供後續 Assembler 組譯。我所設計的 Compiler 目的即為將 c 語言轉成組合語言，在這我們沒有實現轉成機器語言。(尚未完成)
 
 ## Execution
 > 更新時間: Wen, May 16, 2018
