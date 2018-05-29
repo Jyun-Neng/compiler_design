@@ -1,5 +1,4 @@
 #include "scanner.h"
-#include "global.h"
 
 typedef enum {
   START,
