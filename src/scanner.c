@@ -12,6 +12,8 @@ typedef enum {
   INCOMMENT,
   SINGLE,
   MULTI,
+  STRDATA,
+  CHRDATA,
   DONE
 } StateType;
 
@@ -19,9 +21,10 @@ static struct {
   char *str;
   TokenType tok;
 } reserved_words[MAXRESERVED] = {
-    {"if", IF},         {"else", ELSE},   {"switch", SWITCH},   {"case", CASE},
-    {"while", WHILE},   {"int", INT},     {"boolean", BOOLEAN}, {"char", CHAR},
-    {"string", STRING}, {"False", FALSE}, {"True", TRUE},       {"main", MAIN}};
+    {"if", IF},         {"else", ELSE},   {"switch", SWITCH},  {"case", CASE},
+    {"while", WHILE},   {"int", INT},     {"bool", BOOLEAN},   {"char", CHAR},
+    {"string", STRING}, {"const", CONST}, {"FALSE", FALSE},    {"TRUE", TRUE},
+    {"main", MAIN},     {"print", PRINT}, {"println", PRINTLN}};
 
 TokenType reservedLookUp(char *str) {
   for (int i = 0; i < MAXRESERVED; ++i) {
@@ -68,6 +71,12 @@ TokenType getToken() {
         } else if (c == '+' || c == '-') {
           state = INSIGN;
           current_token = (c == '+') ? PLUS : MINUS;
+        } else if (c == '"') {
+          save = 0;
+          state = STRDATA;
+        } else if (c == '\'') {
+          save = 0;
+          state = CHRDATA;
         } else {
           state = DONE;
           switch (c) {
@@ -88,6 +97,9 @@ TokenType getToken() {
               break;
             case ';':
               current_token = SEMI;
+              break;
+            case ',':
+              current_token = COMMA;
               break;
             case '{':
               current_token = LBRACE;
@@ -194,6 +206,20 @@ TokenType getToken() {
           ungetc(c, source);
           state = DONE;
           current_token = ID;
+        }
+        break;
+      case STRDATA:
+        if (c == '"') {
+          save = 0;
+          state = DONE;
+          current_token = STRTYPE;
+        }
+        break;
+      case CHRDATA:
+        if (c == '\'') {
+          save = 0;
+          state = DONE;
+          current_token = CHARTYPE;
         }
         break;
       default:
