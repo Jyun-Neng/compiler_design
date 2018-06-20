@@ -6,7 +6,9 @@
 #include <stdlib.h>
 #include <string.h>
 #include "global.h"
+#include "symtab.h"
 
 void cgen(char operation);
-
+void codegen(Operator *opr, Operand *op1, Operand *op2); 
+    
 #endif
