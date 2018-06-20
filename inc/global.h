@@ -6,7 +6,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define MAXRESERVED 12
+#define MAXRESERVED 15
 #define MAXTOKENLEN 40
 
 // token
@@ -23,6 +23,7 @@ typedef enum {
   BOOLEAN,
   CHAR,
   STRING,
+  CONST,
   TRUE,
   FALSE,
   ID,
@@ -41,13 +42,18 @@ typedef enum {
   MODULO,
   ASSIGN,
   SEMI,
+  COMMA,
   LPAREN,
   RPAREN,
   LBRACE,
   RBRACE,
   COLON,
+  STRTYPE,
+  CHARTYPE,
   OTHER,
-  COMMENT
+  COMMENT,
+  PRINT,
+  PRINTLN
 } TokenType;
 
 // compiler I/O
@@ -56,31 +62,5 @@ extern FILE *source;    // source file
 extern FILE *code;      // output asm file
 extern char *codefile;  // file name
 extern int line_no;     // source file line number
-
-// syntax tree
-
-typedef enum { STMTK, EXPK } NodeKind;
-typedef enum { IFK, REPEATK, ASSIGNK, READK, WRITEK } StmtKind;
-typedef enum { OPK, CONSTK, IDK } ExpKind;
-typedef enum { VOID, INTEGER, BOOL } ExpType;
-
-#define CHILDREN 3
-
-typedef struct treeNode {
-  struct treeNode *children[CHILDREN];
-  struct treeNode *sibling;
-  int line;
-  NodeKind nkind;
-  union {
-    StmtKind stmt;
-    ExpKind exp;
-  } kind;
-  union {
-    TokenType op;
-    int val;
-    char *name;
-  } attr;
-  ExpType type;
-} TreeNode;
 
 #endif
