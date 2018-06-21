@@ -1,5 +1,6 @@
 #include "cgen.h"
 
+static char *dcl_name;
 int m = 0;
 
 static void emit_prologue();
@@ -51,13 +52,16 @@ void codegen(Operator *opr, Operand *op1, Operand *op2) {
       break;
     case PRINT:
       emit_print(op1);
-      break;  
+      break;
     case PRINTLN:
       emit_println(op1);
-      break;  
+      break;
     default:
+      fprintf(stderr, "%s%d%d: error: unexpected expression\n", sourcefile, line_no, __LINE__);
+      ERROR++;
       break;
   }
+  free(opr);
 }
 
 static void emit_prologue() {
@@ -76,8 +80,8 @@ static void emit_includes() {
 }
 
 static void emit_epilogue() {
-  fprintf(code, "\tCALL CRLF\n");  
-  fprintf(code, "\tINT 3\n");  
+  fprintf(code, "\tCALL CRLF\n");
+  fprintf(code, "\tINT 3\n");
   fprintf(code, "\t      exit\n");
   fprintf(code, "\t_main ENDP\n");
   emit_data_segment();
@@ -88,6 +92,7 @@ static void emit_data_segment() {
   // st_print();
   fprintf(code, ".DATA\n");
   fprintf(code, "\t_SID  DB \"JyunNeng\"\n");
+  Symbol *sym = st_pop();
   while (sym) {
     switch (sym->dcl_type) {
       case NUM:
@@ -106,7 +111,8 @@ static void emit_data_segment() {
         break;
       case STRTYPE:
         if (sym->n == 0)
-          fprintf(code, "\t%s  DB \"%s\", 0\n", sym->dcl_name, sym->dcl_val.str);
+          fprintf(code, "\t%s  DB \"%s\", 0\n", sym->dcl_name,
+                  sym->dcl_val.str);
         else
           fprintf(code, "\t%s%d  DB \"%s\", 0\n", sym->dcl_name, sym->n,
                   sym->dcl_val.str);
@@ -119,9 +125,13 @@ static void emit_data_segment() {
                   sym->dcl_val.str);
         break;
       default:
+        fprintf(stderr, "%s:%d:%d: warning: unknown symbol type \"%s\"\n",
+                sourcefile, line_no, __LINE__, sym->dcl_name);
+        ERROR++;
         break;
     }
-    sym = sym->next;
+    free(sym);
+    sym = st_pop();
   }
 }
 
@@ -133,13 +143,17 @@ static void emit_assign(Operand *op1, Operand *op2) {
   else
     fprintf(code, "\tMOV EAX, %s\n", op1->op_name);
   fprintf(code, "\tMOV %s, EAX\n", op2->op_name);
+  free(op1);
+  free(op2);
 }
 
 static void emit_add(Operand *op1, Operand *op2) {
   Symbol *result = malloc(sizeof(Symbol));
-  char *val = "0";  
-  st_insert(NULL, val, NUM);
-  result = sym;
+  char *val = "0";
+  dcl_name = (char *)malloc(MAXTOKENLEN * sizeof(char));
+  dcl_name = "_S";
+  st_insert(dcl_name, ++dcl_n, val, NUM);
+  result = st_lookup(dcl_name, dcl_n);
   if (op1->op_type != NUM && op2->op_type != NUM)
     fprintf(stdout, "%d, operation type error!\n", line_no);
 
@@ -153,13 +167,17 @@ static void emit_add(Operand *op1, Operand *op2) {
     fprintf(code, "\tADD EAX, %s\n", op1->op_name);
   fprintf(code, "\tMOV %s%d, EAX\n", result->dcl_name, result->n);
   push_operand(result);
+  free(op1);
+  free(op2);
 }
 
 static void emit_sub(Operand *op1, Operand *op2) {
   Symbol *result = malloc(sizeof(Symbol));
-  char *val = "0";  
-  st_insert(NULL, val, NUM);
-  result = sym;
+  char *val = "0";
+  dcl_name = (char *)malloc(MAXTOKENLEN * sizeof(char));
+  dcl_name = "_S";
+  st_insert(dcl_name, ++dcl_n, val, NUM);
+  result = st_lookup(dcl_name, dcl_n);
   if (op1->op_type != NUM && op2->op_type != NUM)
     fprintf(stdout, "%d, operation type error!\n", line_no);
 
@@ -173,13 +191,17 @@ static void emit_sub(Operand *op1, Operand *op2) {
     fprintf(code, "\tSUB EAX, %s\n", op2->op_name);
   fprintf(code, "\tMOV %s%d, EAX\n", result->dcl_name, result->n);
   push_operand(result);
+  free(op1);
+  free(op2);
 }
 
 static void emit_mul(Operand *op1, Operand *op2) {
   Symbol *result = malloc(sizeof(Symbol));
-  char *val = "0";  
-  st_insert(NULL, val, NUM);
-  result = sym;
+  char *val = "0";
+  dcl_name = (char *)malloc(MAXTOKENLEN * sizeof(char));
+  dcl_name = "_S";
+  st_insert(dcl_name, ++dcl_n, val, NUM);
+  result = st_lookup(dcl_name, dcl_n);
   if (op1->op_type != NUM && op2->op_type != NUM)
     fprintf(stdout, "%d, operation type error!\n", line_no);
 
@@ -193,12 +215,16 @@ static void emit_mul(Operand *op1, Operand *op2) {
     fprintf(code, "\tIMUL %s\n", op1->op_name);
   fprintf(code, "\tMOV %s%d, EAX\n", result->dcl_name, result->n);
   push_operand(result);
+  free(op1);
+  free(op2);
 }
 static void emit_div(Operand *op1, Operand *op2) {
   Symbol *result = malloc(sizeof(Symbol));
-  char *val = "0";  
-  st_insert(NULL, val, NUM);
-  result = sym;
+  char *val = "0";
+  dcl_name = (char *)malloc(MAXTOKENLEN * sizeof(char));
+  dcl_name = "_S";
+  st_insert(dcl_name, ++dcl_n, val, NUM);
+  result = st_lookup(dcl_name, dcl_n);
   if (op1->op_type != NUM && op2->op_type != NUM)
     fprintf(stdout, "%d, operation type error!\n", line_no);
 
@@ -213,12 +239,16 @@ static void emit_div(Operand *op1, Operand *op2) {
     fprintf(code, "\tIDIV %s\n", op1->op_name);
   fprintf(code, "\tMOV %s%d, EAX\n", result->dcl_name, result->n);
   push_operand(result);
+  free(op1);
+  free(op2);
 }
 static void emit_mod(Operand *op1, Operand *op2) {
   Symbol *result = malloc(sizeof(Symbol));
-  char *val = "0";  
-  st_insert(NULL, val, NUM);
-  result = sym;
+  char *val = "0";
+  dcl_name = (char *)malloc(MAXTOKENLEN * sizeof(char));
+  dcl_name = "_S";
+  st_insert(dcl_name, ++dcl_n, val, NUM);
+  result = st_lookup(dcl_name, dcl_n);
   if (op1->op_type != NUM && op2->op_type != NUM)
     fprintf(stdout, "%d, operation type error!\n", line_no);
 
@@ -233,6 +263,8 @@ static void emit_mod(Operand *op1, Operand *op2) {
     fprintf(code, "\tIDIV %s\n", op1->op_name);
   fprintf(code, "\tMOV %s%d, EDX\n", result->dcl_name, result->n);
   push_operand(result);
+  free(op1);
+  free(op2);
 }
 
 static void emit_print(Operand *op1) {
@@ -242,18 +274,19 @@ static void emit_print(Operand *op1) {
         fprintf(code, "\tMOV EAX, %s%d\n", op1->op_name, op1->n);
       else
         fprintf(code, "\tMOV EAX, %s\n", op1->op_name);
-      fprintf(code, "\tCALL WriteInt\n");  
+      fprintf(code, "\tCALL WriteInt\n");
       break;
-    case STRTYPE:  
+    case STRTYPE:
       if (op1->n != 0)
         fprintf(code, "\tMOV EDX, offset %s%d\n", op1->op_name, op1->n);
       else
         fprintf(code, "\tMOV EDX, offset %s\n", op1->op_name);
-      fprintf(code, "\tCALL WriteString\n");  
+      fprintf(code, "\tCALL WriteString\n");
       break;
     default:
-      break;          
+      break;
   }
+  free(op1);
 }
 
 static void emit_println(Operand *op1) {
@@ -263,17 +296,18 @@ static void emit_println(Operand *op1) {
         fprintf(code, "\tMOV EAX, %s%d\n", op1->op_name, op1->n);
       else
         fprintf(code, "\tMOV EAX, %s\n", op1->op_name);
-      fprintf(code, "\tCALL WriteInt\n");  
+      fprintf(code, "\tCALL WriteInt\n");
       break;
-    case STRTYPE:  
+    case STRTYPE:
       if (op1->n != 0)
         fprintf(code, "\tMOV EDX, offset %s%d\n", op1->op_name, op1->n);
       else
         fprintf(code, "\tMOV EDX, offset %s\n", op1->op_name);
-      fprintf(code, "\tCALL WriteString\n");  
+      fprintf(code, "\tCALL WriteString\n");
       break;
     default:
-      break;          
+      break;
   }
+  free(op1);
   fprintf(code, "\tCALL CRLF\n");
 }

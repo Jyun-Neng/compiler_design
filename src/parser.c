@@ -16,6 +16,7 @@ static void main_stmt();
 static void body();
 static void const_dcl();
 static void var_list();
+/* The data type of constant variable is defined by the assigned data type. */
 static void const_stmt();
 static void var_stmt(TokenType dcl_type);
 static void assign_stmt();
@@ -138,27 +139,27 @@ static void var_list() {
 
 static void const_stmt() {
   dcl_name = (char *)malloc(MAXTOKENLEN * sizeof(char));
-  strcat(dcl_name, token);
+  strcat(dcl_name, token);  // store declaration variable name
   match(__LINE__, ID);
   match(__LINE__, ASSIGN);
   switch (current_token) {
     case ID:
-      st_insert(dcl_name, token, current_token);
+      st_insert(dcl_name, 0, token, current_token);
       break;
     case NUM:
-      st_insert(dcl_name, token, current_token);
+      st_insert(dcl_name, 0, token, current_token);
       break;
     case TRUE:
-      st_insert(dcl_name, token, current_token);
+      st_insert(dcl_name, 0, token, current_token);
       break;
     case FALSE:
-      st_insert(dcl_name, token, current_token);
+      st_insert(dcl_name, 0, token, current_token);
       break;
     case STRTYPE:
-      st_insert(dcl_name, token, current_token);
+      st_insert(dcl_name, 0, token, current_token);
       break;
     case CHARTYPE:
-      st_insert(dcl_name, token, current_token);
+      st_insert(dcl_name, 0, token, current_token);
       break;
     default:
       syntaxError(__LINE__, "unexpected token ");
@@ -208,7 +209,7 @@ static void var_stmt(TokenType dcl_type) {
       default:
         break;
     }
-    st_insert(dcl_name, token, dcl_type);
+    st_insert(dcl_name, 0, token, dcl_type);
     current_token = getToken();
   } else {
     switch (dcl_type) {
@@ -231,12 +232,12 @@ static void var_stmt(TokenType dcl_type) {
       default:
         break;
     }
-    st_insert(dcl_name, dcl_val, dcl_type);
+    st_insert(dcl_name, 0, dcl_val, dcl_type);
   }
 }
 
 static void assign_stmt() {
-  push_operand(st_lookup(token));
+  push_operand(st_lookup(token, 0));
   match(__LINE__, ID);
   push_operator(current_token);
   match(__LINE__, ASSIGN);
@@ -312,7 +313,7 @@ static void factor() {
       match(__LINE__, RPAREN);
       break;
     case ID:
-      push_operand(st_lookup(token));
+      push_operand(st_lookup(token, 0));
       match(__LINE__, current_token);
       break;
     case NUM:
@@ -320,8 +321,10 @@ static void factor() {
     case FALSE:
     case STRTYPE:
     case CHARTYPE:
-      st_insert(NULL, token, current_token);
-      push_operand(sym);
+      dcl_name = (char *)malloc(MAXTOKENLEN * sizeof(char));
+      dcl_name = "_S";
+      st_insert(dcl_name, ++dcl_n, token, current_token);
+      push_operand(st_lookup(dcl_name, dcl_n));
       match(__LINE__, current_token);
       break;
     default:
