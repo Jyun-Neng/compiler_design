@@ -10,6 +10,7 @@ char *sourcefile;
 char *codefile;
 int line_no = 1;
 int ERROR = 0;
+int dcl_n = 0;
 
 int main(int argc, const char *argv[]) {
   int len;
