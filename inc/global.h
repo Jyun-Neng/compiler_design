@@ -1,10 +1,7 @@
 #ifndef _GLOBAL_H_
 #define _GLOBAL_H_
 
-#include <ctype.h>
 #include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 
 #define MAXRESERVED 15
 #define MAXTOKENLEN 40
