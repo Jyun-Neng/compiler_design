@@ -87,7 +87,8 @@ static void body() {
         print_stmt();
         break;  
       case PRINTLN:
-        current_token = getToken();
+        op_init();
+        println_stmt();
         break;  
       case IF:
         if_stmt();
@@ -210,11 +211,11 @@ static void var_stmt(TokenType dcl_type) {
     switch (dcl_type) {
       case STRING:
         dcl_type = STRTYPE;
-        dcl_val = "";
+        dcl_val = " ";
         break;
       case CHAR:
         dcl_type = CHARTYPE;
-        dcl_val = "";
+        dcl_val = " ";
         break;
       case INT:
         dcl_type = NUM;
@@ -246,6 +247,18 @@ static void print_stmt() {
   exp();
   match(RPAREN);
   match(SEMI);
+  push_operator(PRINT);
+  codegen(pop_operator(), pop_operand(), NULL);
+}
+
+static void println_stmt() {
+  match(PRINTLN);
+  match(LPAREN);
+  exp();
+  match(RPAREN);
+  match(SEMI);
+  push_operator(PRINTLN);
+  codegen(pop_operator(), pop_operand(), NULL);
 }
 
 static void if_stmt() {
