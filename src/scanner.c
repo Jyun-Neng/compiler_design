@@ -25,7 +25,7 @@ static struct {
 } reserved_words[MAXRESERVED] = {
     {"if", IF},         {"else", ELSE},   {"switch", SWITCH},  {"case", CASE},
     {"while", WHILE},   {"int", INT},     {"bool", BOOLEAN},   {"char", CHAR},
-    {"string", STRING}, {"const", CONST}, {"FALSE", FALSE},    {"TRUE", TRUE},
+    {"string", STRING}, {"FALSE", FALSE},    {"TRUE", TRUE},
     {"main", MAIN},     {"print", PRINT}, {"println", PRINTLN}};
 
 // ID -> reserved word
@@ -111,8 +111,6 @@ TokenType getToken() {
               current_token = RBRACE;
               break;
             default:
-              fprintf(stderr, "%s:%d:%d: warning: Unknown character \"%c\"\n",
-                      sourcefile, line_no, __LINE__, c);
               current_token = OTHER;
               break;
           }
