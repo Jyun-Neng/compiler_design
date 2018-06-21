@@ -10,8 +10,8 @@ TokenType dcl_type;
 
 static TokenType current_token;
 
-static void syntaxError(char *errmsg);
-static void match(TokenType expected);
+static void syntaxError(int line, char *errmsg);
+static void match(int line, TokenType expected);
 static void main_stmt();
 static void body();
 static void const_dcl();
@@ -27,18 +27,19 @@ static void simple_exp();
 static void term();
 static void factor();
 
-static void syntaxError(char *errmsg) {
-  fprintf(stdout, "\n>>> ");
-  fprintf(stdout, "Syntax error at line %d: %s", line_no, errmsg);
+static void syntaxError(int line, char *errmsg) {
+  fprintf(stderr, "%s:%d:%d: syntax error: %s", sourcefile, line_no, line,
+          errmsg);
+  ERROR++;
 }
 
-static void match(TokenType expected) {
+static void match(int line, TokenType expected) {
   if (current_token == expected) {
     current_token = getToken();
   } else {
-    syntaxError("unexpected token -> ");
-    fprintf(stdout, "%s\n", token);
-    exit(1);
+    syntaxError(line, "unexpected token ");
+    fprintf(stderr, "\"%s\"\n", token);
+    current_token = getToken();
   }
 }
 
@@ -58,24 +59,24 @@ void parser() {
 static void main_stmt() {
   if (current_token == MAIN) {
     current_token = getToken();
-    match(LPAREN);
-    match(RPAREN);
+    match(__LINE__, LPAREN);
+    match(__LINE__, RPAREN);
     body();
   } else
-    syntaxError("no main function");
+    syntaxError(__LINE__, "no main function");
 }
 
 static void body() {
-  match(LBRACE);
+  match(__LINE__, LBRACE);
   while (current_token != RBRACE) {
     switch (current_token) {
-      case CONST:   // declaration statement
+      case CONST:     // declaration statement
         const_dcl();
         break;
-      case STRING:  // declaration statement
-      case INT:     // declaration statement
-      case CHAR:    // declaration statement
-      case BOOLEAN: // declaration statement
+      case STRING:    // declaration statement
+      case INT:       // declaration statement
+      case CHAR:      // declaration statement
+      case BOOLEAN:   // declaration statement
         var_list();
         break;
       case ID:
@@ -85,33 +86,35 @@ static void body() {
       case PRINT:
         op_init();
         print_stmt();
-        break;  
+        break;
       case PRINTLN:
         op_init();
         println_stmt();
-        break;  
+        break;
       case IF:
         if_stmt();
         break;
       case COMMENT:
-        current_token = getToken();
+        match(__LINE__, COMMENT);
         break;
       default:
-        current_token = getToken();
+        syntaxError(__LINE__, "unexpected token ");
+        fprintf(stderr, "\"%s\"\n", token);
+        match(__LINE__, current_token);
         break;
     }
   }
-  match(RBRACE);
+  match(__LINE__, RBRACE);
 }
 
 static void const_dcl() {
-  match(CONST);
+  match(__LINE__, CONST);
   const_stmt();
   while ((current_token = getToken()) == COMMA) {
     current_token = getToken();
     const_stmt();
   }
-  match(SEMI);
+  match(__LINE__, SEMI);
 }
 
 static void var_list() {
@@ -130,14 +133,14 @@ static void var_list() {
     var_stmt(dcl_type);
   }
 
-  match(SEMI);
+  match(__LINE__, SEMI);
 }
 
 static void const_stmt() {
-  dcl_name = malloc(sizeof(char));
-  strcpy(dcl_name, token);
-  match(ID);
-  match(ASSIGN);
+  dcl_name = (char *)malloc(MAXTOKENLEN * sizeof(char));
+  strcat(dcl_name, token);
+  match(__LINE__, ID);
+  match(__LINE__, ASSIGN);
   switch (current_token) {
     case ID:
       st_insert(dcl_name, token, current_token);
@@ -158,8 +161,8 @@ static void const_stmt() {
       st_insert(dcl_name, token, current_token);
       break;
     default:
-      syntaxError("unexpected token -> ");
-      fprintf(stdout, "%s\n", token);
+      syntaxError(__LINE__, "unexpected token ");
+      fprintf(stderr, "\"%s\"\n", token);
       exit(1);
       break;
   }
@@ -233,46 +236,48 @@ static void var_stmt(TokenType dcl_type) {
 }
 
 static void assign_stmt() {
-  push_operand(st_lookup(token));  
-  match(ID);  
+  push_operand(st_lookup(token));
+  match(__LINE__, ID);
   push_operator(current_token);
-  match(ASSIGN);
+  match(__LINE__, ASSIGN);
   exp();
+  match(__LINE__, SEMI);
   codegen(pop_operator(), pop_operand(), pop_operand());
 }
 
 static void print_stmt() {
-  match(PRINT);
-  match(LPAREN);
+  match(__LINE__, PRINT);
+  match(__LINE__, LPAREN);
   exp();
-  match(RPAREN);
-  match(SEMI);
+  match(__LINE__, RPAREN);
+  match(__LINE__, SEMI);
   push_operator(PRINT);
   codegen(pop_operator(), pop_operand(), NULL);
 }
 
 static void println_stmt() {
-  match(PRINTLN);
-  match(LPAREN);
+  match(__LINE__, PRINTLN);
+  match(__LINE__, LPAREN);
   exp();
-  match(RPAREN);
-  match(SEMI);
+  match(__LINE__, RPAREN);
+  match(__LINE__, SEMI);
   push_operator(PRINTLN);
   codegen(pop_operator(), pop_operand(), NULL);
 }
 
 static void if_stmt() {
-  match(IF);
-  match(LPAREN);
+  match(__LINE__, IF);
+  match(__LINE__, LPAREN);
   exp();
-  match(RPAREN);
+  match(__LINE__, RPAREN);
 }
 
 static void exp() {
   simple_exp();
-  if (current_token == LT || current_token == NE || current_token == EQ || current_token == LE || current_token == GT || current_token == GE) {
+  if (current_token == LT || current_token == NE || current_token == EQ ||
+      current_token == LE || current_token == GT || current_token == GE) {
     push_operator(current_token);
-    match(current_token);
+    match(__LINE__, current_token);
     simple_exp();
     codegen(pop_operator(), pop_operand(), pop_operand());
   }
@@ -282,7 +287,7 @@ static void simple_exp() {
   term();
   while (current_token == PLUS || current_token == MINUS) {
     push_operator(current_token);
-    match(current_token);
+    match(__LINE__, current_token);
     term();
     codegen(pop_operator(), pop_operand(), pop_operand());
   }
@@ -290,9 +295,10 @@ static void simple_exp() {
 
 static void term() {
   factor();
-  while(current_token == TIMES || current_token == OVER || current_token == MODULO) {
+  while (current_token == TIMES || current_token == OVER ||
+         current_token == MODULO) {
     push_operator(current_token);
-    match(current_token);
+    match(__LINE__, current_token);
     factor();
     codegen(pop_operator(), pop_operand(), pop_operand());
   }
@@ -301,26 +307,26 @@ static void term() {
 static void factor() {
   switch (current_token) {
     case LPAREN:
-      match(LPAREN);  
+      match(__LINE__, LPAREN);
       exp();
-      match(RPAREN);
+      match(__LINE__, RPAREN);
       break;
     case ID:
       push_operand(st_lookup(token));
-      match(current_token);
+      match(__LINE__, current_token);
       break;
     case NUM:
     case TRUE:
-    case FALSE:  
+    case FALSE:
     case STRTYPE:
     case CHARTYPE:
       st_insert(NULL, token, current_token);
       push_operand(sym);
-      match(current_token);
-      break;    
+      match(__LINE__, current_token);
+      break;
     default:
       fprintf(stdout, "factor error\n");
       current_token = getToken();
       break;
-  }  
+  }
 }
