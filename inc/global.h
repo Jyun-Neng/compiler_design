@@ -3,7 +3,7 @@
 
 #include <stdio.h>
 
-#define MAXRESERVED 15
+#define MAXRESERVED 14
 #define MAXTOKENLEN 40
 
 // token
@@ -20,7 +20,6 @@ typedef enum {
   BOOLEAN,
   CHAR,
   STRING,
-  CONST,
   TRUE,
   FALSE,
   ID,
