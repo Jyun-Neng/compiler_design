@@ -31,37 +31,40 @@ void cgen(char operation) {
 }
 
 void codegen(Operator *opr, Operand *op1, Operand *op2) {
-  switch (opr->opr_type) {
-    case ASSIGN:
-      emit_assign(op1, op2);
-      break;
-    case PLUS:
-      emit_add(op1, op2);
-      break;
-    case MINUS:
-      emit_sub(op1, op2);
-      break;
-    case TIMES:
-      emit_mul(op1, op2);
-      break;
-    case OVER:
-      emit_div(op1, op2);
-      break;
-    case MODULO:
-      emit_mod(op1, op2);
-      break;
-    case PRINT:
-      emit_print(op1);
-      break;
-    case PRINTLN:
-      emit_println(op1);
-      break;
-    default:
-      fprintf(stderr, "%s%d%d: error: unexpected expression\n", sourcefile, line_no, __LINE__);
-      ERROR++;
-      break;
+  if (opr && op1) {
+    switch (opr->opr_type) {
+      case ASSIGN:
+        emit_assign(op1, op2);
+        break;
+      case PLUS:
+        emit_add(op1, op2);
+        break;
+      case MINUS:
+        emit_sub(op1, op2);
+        break;
+      case TIMES:
+        emit_mul(op1, op2);
+        break;
+      case OVER:
+        emit_div(op1, op2);
+        break;
+      case MODULO:
+        emit_mod(op1, op2);
+        break;
+      case PRINT:
+        emit_print(op1);
+        break;
+      case PRINTLN:
+        emit_println(op1);
+        break;
+      default:
+        fprintf(stderr, "%s:%d:%d: error: unexpected expression\n", sourcefile,
+                line_no, __LINE__);
+        ERROR++;
+        break;
+    }
+    free(opr);
   }
-  free(opr);
 }
 
 static void emit_prologue() {
