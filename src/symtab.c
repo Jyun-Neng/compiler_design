@@ -7,7 +7,6 @@ static Symbol *sym;
 static Operand *operand;
 static Operator *operator;
 
-static int n = 0;
 void st_init() { sym = NULL; }
 
 void op_init() {
@@ -78,7 +77,8 @@ Symbol *st_lookup(char *srch_name, int n) {
   fprintf(stderr, "%s:%d:%d: error: use of undeclared identifier \"%s\"\n",
           sourcefile, line_no, __LINE__, srch_name);
   ERROR++;
-  return NULL;
+  fprintf(stderr, "%d error generated.\n", ERROR);
+  exit(1);
 }
 
 void st_print() {
@@ -106,15 +106,19 @@ void st_print() {
 
 void push_operand(Symbol *op) {
   Operand *new_op = (Operand *)malloc(sizeof(Operand));
-  strcpy(new_op->op_name, op->dcl_name);
-  new_op->n = op->n;
-  new_op->op_type = op->dcl_type;
-  new_op->next = operand;
-  operand = new_op;
+  if (op) {
+    strcpy(new_op->op_name, op->dcl_name);
+    new_op->n = op->n;
+    new_op->op_type = op->dcl_type;
+    new_op->next = operand;
+    operand = new_op;
+  }
 }
 
 Operand *pop_operand() {
   Operand *pop_op = (Operand *)malloc(sizeof(Operand));
+  if (!operand)
+    return NULL;  
   // copy operand node
   *pop_op = *operand;
   pop_op->next = NULL;  // no next operand node
@@ -134,6 +138,8 @@ void push_operator(TokenType opr_type) {
 
 Operator *pop_operator() {
   Operator *pop_opr = (Operator *)malloc(sizeof(Operator));
+  if (!operator)
+    return NULL;  
   // copy operator node
   pop_opr->opr_type = operator->opr_type;
   pop_opr->next = NULL;  // no next operator node
