@@ -9,6 +9,7 @@
 
 char token[MAXTOKENLEN];
 
+// Return the type of next token in source file.
 TokenType getToken();
 
 #endif
