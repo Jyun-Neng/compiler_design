@@ -56,10 +56,11 @@ void st_insert(char *dcl_name, int n, char *dcl_char, TokenType dcl_type) {
 
 Symbol *st_pop() {
   Symbol *pop_sym = (Symbol *)malloc(sizeof(Symbol));
+  Symbol *tmp = sym;
   if (sym) {
     *pop_sym = *sym;
-    free(sym);
     sym = sym->next;
+    free(tmp);
     return pop_sym;
   } else
     return NULL;
@@ -117,15 +118,16 @@ void push_operand(Symbol *op) {
 
 Operand *pop_operand() {
   Operand *pop_op = (Operand *)malloc(sizeof(Operand));
+  Operand *tmp = operand;
   if (!operand)
     return NULL;  
   // copy operand node
   *pop_op = *operand;
   pop_op->next = NULL;  // no next operand node
-  // release memory space
-  free(operand);
   // point to next operand node
   operand = operand->next;
+  // release memory space
+  free(tmp);
   return pop_op;
 }
 
@@ -138,14 +140,15 @@ void push_operator(TokenType opr_type) {
 
 Operator *pop_operator() {
   Operator *pop_opr = (Operator *)malloc(sizeof(Operator));
+  Operator *tmp = operator;
   if (!operator)
     return NULL;  
   // copy operator node
   pop_opr->opr_type = operator->opr_type;
   pop_opr->next = NULL;  // no next operator node
-  // release memory space
-  free(operator);
   // point to next operator node
-  operator= operator->next;
+  operator = operator->next;
+  // release memory space
+  free(tmp);
   return pop_opr;
 }
