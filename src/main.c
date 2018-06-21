@@ -6,16 +6,24 @@
 
 FILE *source;
 FILE *code;
+char *sourcefile;
 char *codefile;
 int line_no = 1;
+int ERROR = 0;
 
 int main(int argc, const char *argv[]) {
   int len;
+  int flen;
 
   if (argc != 2) {
     fprintf(stderr, "No source file.\n");
     exit(1);
   }
+  // store source file name
+  flen = strlen(argv[1]);
+  sourcefile = (char *)malloc((flen + 2) * sizeof(char));
+  strcat(sourcefile, "./");
+  strcat(sourcefile, argv[1]);
 
   // create asm file
   len = strcspn(argv[1], ".");
@@ -36,6 +44,9 @@ int main(int argc, const char *argv[]) {
   parser();
 
   fprintf(stdout, "\n Parsing end. Line %d\n", line_no);
+
+  if (ERROR!=0)
+    fprintf(stderr, "total error: %d\n", ERROR);  
 
   return 0;
 }
