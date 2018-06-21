@@ -1,6 +1,8 @@
-#include "global.h"
+#include <ctype.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include "parser.h"
-#include "scanner.h"
 
 FILE *source;
 FILE *code;
@@ -17,9 +19,9 @@ int main(int argc, const char *argv[]) {
 
   // create asm file
   len = strcspn(argv[1], ".");
-  codefile = (char *)malloc((len+4)*sizeof(char));
+  codefile = (char *)malloc((len + 4) * sizeof(char));
   strncpy(codefile, argv[1], len);  // strncpy does not copy null character
-  codefile[len] = '\0'; 
+  codefile[len] = '\0';
   strcat(codefile, ".asm");
   code = fopen(codefile, "w");
 
