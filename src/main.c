@@ -8,7 +8,6 @@ char *codefile;
 int line_no = 1;
 
 int main(int argc, const char *argv[]) {
-  char c;
   int len;
 
   if (argc != 2) {
@@ -18,8 +17,9 @@ int main(int argc, const char *argv[]) {
 
   // create asm file
   len = strcspn(argv[1], ".");
-  codefile = (char *)malloc(sizeof(char));
-  strncpy(codefile, argv[1], len);
+  codefile = (char *)malloc((len+4)*sizeof(char));
+  strncpy(codefile, argv[1], len);  // strncpy does not copy null character
+  codefile[len] = '\0'; 
   strcat(codefile, ".asm");
   code = fopen(codefile, "w");
 
