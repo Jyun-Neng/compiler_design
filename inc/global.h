@@ -55,9 +55,11 @@ typedef enum {
 
 // compiler I/O
 
-extern FILE *source;    // source file
-extern FILE *code;      // output asm file
-extern char *codefile;  // file name
-extern int line_no;     // source file line number
+extern FILE *source;     // source file
+extern FILE *code;       // output asm file
+extern char *codefile;   // asm file name
+extern char *sourcefile; // source file name
+extern int line_no;      // source file line number
+extern int ERROR;
 
 #endif
