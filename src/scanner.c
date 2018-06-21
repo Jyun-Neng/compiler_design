@@ -1,5 +1,6 @@
 #include "scanner.h"
 
+// DFA state
 typedef enum {
   START,
   INID,
@@ -17,6 +18,7 @@ typedef enum {
   DONE
 } StateType;
 
+// reserved words
 static struct {
   char *str;
   TokenType tok;
@@ -26,7 +28,8 @@ static struct {
     {"string", STRING}, {"const", CONST}, {"FALSE", FALSE},    {"TRUE", TRUE},
     {"main", MAIN},     {"print", PRINT}, {"println", PRINTLN}};
 
-TokenType reservedLookUp(char *str) {
+// ID -> reserved word
+static TokenType reservedLookUp(char *str) {
   for (int i = 0; i < MAXRESERVED; ++i) {
     if (!strcmp(str, reserved_words[i].str)) return reserved_words[i].tok;
   }
@@ -37,7 +40,7 @@ TokenType getToken() {
   TokenType current_token;
   StateType state = START;
   int token_index = 0;
-  int save;
+  int save;  // if save = 1, then save the token
   char c, nc;
 
   while (state != DONE) {
@@ -108,6 +111,8 @@ TokenType getToken() {
               current_token = RBRACE;
               break;
             default:
+              fprintf(stderr, "%s:%d:%d: warning: Unknown character \"%c\"\n",
+                      sourcefile, line_no, __LINE__, c);
               current_token = OTHER;
               break;
           }
@@ -223,6 +228,8 @@ TokenType getToken() {
         }
         break;
       default:
+        fprintf(stderr, "%s:%d:%d: error: Unexpected state.\n", __FILE__,
+                __LINE__, line_no);
         break;
     }
     if (save && token_index < MAXTOKENLEN) token[token_index++] = c;
