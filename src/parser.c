@@ -6,10 +6,6 @@ TokenType dcl_type;
 
 static TokenType current_token;
 
-/* Print warning message. */
-static void warning(int line, char *errmsg);
-/* Print error message. */
-static void error(int line, char *errmsg);
 /* Compare token type */
 static int match(int line, TokenType expected);
 /* main statement -> MAIN LPAREN RPAREN */
@@ -34,15 +30,6 @@ static void simple_exp();
 static void term();
 /* factor -> (exp) | ID */
 static void factor();
-
-static void warning(int line, char *errmsg) {
-  fprintf(stderr, "%s:%d:%d: warning: %s", sourcefile, line_no, line, errmsg);
-}
-
-static void error(int line, char *errmsg) {
-  fprintf(stderr, "%s:%d:%d: error: %s", sourcefile, line_no, line, errmsg);
-  ERROR++;
-}
 
 static int match(int line, TokenType expected) {
   if (current_token == expected) {

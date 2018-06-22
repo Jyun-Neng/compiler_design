@@ -75,9 +75,8 @@ Symbol *st_lookup(char *srch_name, int n) {
     }
     sym_traverse = sym_traverse->next;
   }
-  fprintf(stderr, "%s:%d:%d: error: use of undeclared identifier \"%s\"\n",
-          sourcefile, line_no, __LINE__, srch_name);
-  ERROR++;
+  error(__LINE__, "use of undeclared identifer ");
+  fprintf(stderr, "\"%s\"\n", srch_name);
   fprintf(stderr, "%d error generated.\n", ERROR);
   exit(1);
 }

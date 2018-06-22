@@ -60,27 +60,24 @@ void codegen(Operator *opr, Operand *op1, Operand *op2) {
         emit_println(op1);
         break;
       case GE:
-        emit_cmp ("JGE", op1, op2);
-        break;  
+        emit_cmp("JGE", op1, op2);
+        break;
       case GT:
-        emit_cmp ("JG", op1, op2);
-        break;  
+        emit_cmp("JG", op1, op2);
+        break;
       case LE:
-        emit_cmp ("JLE", op1, op2);
-        break;  
+        emit_cmp("JLE", op1, op2);
+        break;
       case LT:
-        emit_cmp ("JL", op1, op2);
-        break;  
+        emit_cmp("JL", op1, op2);
+        break;
       case EQ:
-        emit_cmp ("JE", op1, op2);
-        break;  
+        emit_cmp("JE", op1, op2);
+        break;
       case NE:
-        emit_cmp ("JNE", op1, op2);
-        break;  
+        emit_cmp("JNE", op1, op2);
+        break;
       default:
-        fprintf(stderr, "%s:%d:%d: error: unexpected expression\n", sourcefile,
-                line_no, __LINE__);
-        ERROR++;
         break;
     }
     free(opr);
@@ -102,9 +99,7 @@ static void emit_includes() {
   fprintf(code, "INCLUDELIB User32.lib\n");
 }
 
-static void emit_label(int label_cnt) {
-  fprintf(code, "_L%d:\n", label_cnt);
-}
+static void emit_label(int label_cnt) { fprintf(code, "_L%d:\n", label_cnt); }
 
 static void emit_epilogue() {
   fprintf(code, "\tCALL CRLF\n");
@@ -163,8 +158,7 @@ static void emit_data_segment() {
 }
 
 static void emit_assign(Operand *op1, Operand *op2) {
-  if (op1->op_type != op2->op_type)
-    fprintf(stdout, "%d, assigned type error!\n", line_no);
+  if (op1->op_type != op2->op_type) error(__LINE__, "implicit conversion\n");
   if (op1->n != 0)
     fprintf(code, "\tMOV EAX, %s%d\n", op1->op_name, op1->n);
   else
@@ -181,8 +175,11 @@ static void emit_add(Operand *op1, Operand *op2) {
   dcl_name = "_S";
   st_insert(dcl_name, ++dcl_n, val, NUM);
   result = st_lookup(dcl_name, dcl_n);
-  if (op1->op_type != NUM && op2->op_type != NUM)
-    fprintf(stdout, "%d, operation type error!\n", line_no);
+  if (op1->op_type != NUM || op2->op_type != NUM) {
+    warning(__LINE__, "expression type different ");
+    fprintf(stderr, "\"%s\" and \"%s\"\n", token_type[op1->op_type],
+            token_type[op2->op_type]);
+  }
 
   if (op2->n != 0)
     fprintf(code, "\tMOV EAX, %s%d\n", op2->op_name, op2->n);
@@ -205,8 +202,11 @@ static void emit_sub(Operand *op1, Operand *op2) {
   dcl_name = "_S";
   st_insert(dcl_name, ++dcl_n, val, NUM);
   result = st_lookup(dcl_name, dcl_n);
-  if (op1->op_type != NUM && op2->op_type != NUM)
-    fprintf(stdout, "%d, operation type error!\n", line_no);
+  if (op1->op_type != NUM || op2->op_type != NUM) {
+    warning(__LINE__, "expression type different ");
+    fprintf(stderr, "\"%s\" and \"%s\"\n", token_type[op1->op_type],
+            token_type[op2->op_type]);
+  }
 
   if (op1->n != 0)
     fprintf(code, "\tMOV EAX, %s%d\n", op1->op_name, op1->n);
@@ -229,8 +229,11 @@ static void emit_mul(Operand *op1, Operand *op2) {
   dcl_name = "_S";
   st_insert(dcl_name, ++dcl_n, val, NUM);
   result = st_lookup(dcl_name, dcl_n);
-  if (op1->op_type != NUM && op2->op_type != NUM)
-    fprintf(stdout, "%d, operation type error!\n", line_no);
+  if (op1->op_type != NUM || op2->op_type != NUM) {
+    warning(__LINE__, "expression type different ");
+    fprintf(stderr, "\"%s\" and \"%s\"\n", token_type[op1->op_type],
+            token_type[op2->op_type]);
+  }
 
   if (op2->n != 0)
     fprintf(code, "\tMOV EAX, %s%d\n", op2->op_name, op2->n);
@@ -252,8 +255,11 @@ static void emit_div(Operand *op1, Operand *op2) {
   dcl_name = "_S";
   st_insert(dcl_name, ++dcl_n, val, NUM);
   result = st_lookup(dcl_name, dcl_n);
-  if (op1->op_type != NUM && op2->op_type != NUM)
-    fprintf(stdout, "%d, operation type error!\n", line_no);
+  if (op1->op_type != NUM || op2->op_type != NUM) {
+    warning(__LINE__, "expression type different ");
+    fprintf(stderr, "\"%s\" and \"%s\"\n", token_type[op1->op_type],
+            token_type[op2->op_type]);
+  }
 
   if (op2->n != 0)
     fprintf(code, "\tMOV EAX, %s%d\n", op2->op_name, op2->n);
@@ -276,8 +282,11 @@ static void emit_mod(Operand *op1, Operand *op2) {
   dcl_name = "_S";
   st_insert(dcl_name, ++dcl_n, val, NUM);
   result = st_lookup(dcl_name, dcl_n);
-  if (op1->op_type != NUM && op2->op_type != NUM)
-    fprintf(stdout, "%d, operation type error!\n", line_no);
+  if (op1->op_type != NUM || op2->op_type != NUM) {
+    warning(__LINE__, "expression type different ");
+    fprintf(stderr, "\"%s\" and \"%s\"\n", token_type[op1->op_type],
+            token_type[op2->op_type]);
+  }
 
   if (op2->n != 0)
     fprintf(code, "\tMOV EAX, %s%d\n", op2->op_name, op2->n);
@@ -340,15 +349,18 @@ static void emit_println(Operand *op1) {
 }
 
 static void emit_cmp(char *cmp, Operand *op1, Operand *op2) {
-  int tmp_cnt = label_cnt;  
+  int tmp_cnt = label_cnt;
   Symbol *result = malloc(sizeof(Symbol));
   char *val = "0";
   dcl_name = (char *)malloc(MAXTOKENLEN * sizeof(char));
   dcl_name = "_S";
   st_insert(dcl_name, ++dcl_n, val, BOOLEAN);
   result = st_lookup(dcl_name, dcl_n);
-  if (op1->op_type != NUM && op2->op_type != NUM)
-    fprintf(stdout, "%d, operation type error!\n", line_no);
+  if (op1->op_type != NUM || op2->op_type != NUM) {
+    warning(__LINE__, "expression type different ");
+    fprintf(stderr, "\"%s\" and \"%s\"\n", token_type[op1->op_type],
+            token_type[op2->op_type]);
+  }
 
   if (op2->n != 0)
     fprintf(code, "\tMOV EAX, %s%d\n", op2->op_name, op2->n);
