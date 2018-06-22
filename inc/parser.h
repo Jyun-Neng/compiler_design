@@ -3,6 +3,7 @@
 #include "cgen.h"
 #include "scanner.h"
 #include "symtab.h"
+#include "debugger.h"
 
 void parser();
 

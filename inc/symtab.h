@@ -1,6 +1,7 @@
 #ifndef _SYMTAB_H_
 #define _SYMTAB_H_
 #include "global.h"
+#include "debugger.h"
 
 // declaration variable struct node
 typedef struct symbol {
