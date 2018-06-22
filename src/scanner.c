@@ -152,7 +152,10 @@ TokenType getToken() {
           state = DONE;
           ungetc(c, source);
         } else {
-          state = INNUM;
+          save = 0;
+          state = DONE;
+          ungetc(c, source);
+          //state = INNUM;
         }
         break;
       case INCOMMENT:
