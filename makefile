@@ -6,7 +6,7 @@ INC = -I$(INC_DIR)
 CC = gcc
 
 GLB = global.h
-HDR = scanner.h parser.h cgen.h symtab.h
+HDR = scanner.h parser.h cgen.h symtab.h debugger.h
 SRC = ${HDR:.h=.c}
 OBJ = ${HDR:.h=.o} main.o
 TARGET = main_x
@@ -19,6 +19,8 @@ parser.o:
 scanner.o:
 	$(CC) $(INC) -c $(SRC_DIR)/$(@:.o=.c)	
 symtab.o:
+	$(CC) $(INC) -c $(SRC_DIR)/$(@:.o=.c)	
+debugger.o:
 	$(CC) $(INC) -c $(SRC_DIR)/$(@:.o=.c)	
 main.o:
 	$(CC) $(INC) -c $(SRC_DIR)/$(@:.o=.c)
