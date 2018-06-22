@@ -11,6 +11,13 @@ char *codefile;
 int line_no = 1;
 int ERROR = 0;
 int dcl_n = 0;
+const char *token_type[] = {
+    "ENDFILE", "main",     "if",    "else",    "switch", "case",   "while",
+    "int",     "bool",     "char",  "string",  "TRUE",   "FALSE",  "ID",
+    "NUM",     "==",       "!=",    "<",       "<=",     ">",      ">=",
+    "NOT",     "+",        "-",     "*",       "/",      "%",      "=",
+    ";",       ",",        "(",     ")",       "{",      "}",      ":",
+    "STRTYPE", "CHARTYPE", "OTHER", "COMMENT", "print",  "println"};
 
 int main(int argc, const char *argv[]) {
   int len;
@@ -46,8 +53,11 @@ int main(int argc, const char *argv[]) {
 
   fprintf(stdout, "\n Parsing end. Line %d\n", line_no);
 
-  if (ERROR!=0)
-    fprintf(stderr, "total error: %d\n", ERROR);  
+  if (ERROR > 1) fprintf(stderr, " %d errors generated.\n", ERROR);
+  if (ERROR == 1) fprintf(stderr, " %d error generated.\n", ERROR);
+  if (ERROR != 0) exit(1);
+
+  fprintf(stdout, "\n Compiled succeed!\n");
 
   return 0;
 }
