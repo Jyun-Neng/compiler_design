@@ -1,8 +1,4 @@
 #include "parser.h"
-#include "cgen.h"
-#include "global.h"
-#include "scanner.h"
-#include "symtab.h"
 
 char dcl_name[MAXTOKENLEN];
 int dcl_val;
@@ -10,9 +6,10 @@ TokenType dcl_type;
 
 static TokenType current_token;
 
-static void typeError(int line, char *errmsg);
-/* Print syntax error message. */
-static void syntaxError(int line, char *errmsg);
+/* Print warning message. */
+static void warning(int line, char *errmsg);
+/* Print error message. */
+static void error(int line, char *errmsg);
 /* Compare token type */
 static int match(int line, TokenType expected);
 /* main statement -> MAIN LPAREN RPAREN */
@@ -38,14 +35,12 @@ static void term();
 /* factor -> (exp) | ID */
 static void factor();
 
-static void typeError(int line, char *errmsg) {
+static void warning(int line, char *errmsg) {
   fprintf(stderr, "%s:%d:%d: warning: %s", sourcefile, line_no, line, errmsg);
-  ERROR++;
 }
 
-static void syntaxError(int line, char *errmsg) {
-  fprintf(stderr, "%s:%d:%d: syntax error: %s", sourcefile, line_no, line,
-          errmsg);
+static void error(int line, char *errmsg) {
+  fprintf(stderr, "%s:%d:%d: error: %s", sourcefile, line_no, line, errmsg);
   ERROR++;
 }
 
@@ -54,8 +49,8 @@ static int match(int line, TokenType expected) {
     current_token = getToken();
     return 1;
   }
-  syntaxError(line, "unexpected token ");
-  fprintf(stderr, "\"%s\"\n", token);
+  error(line, "expected token ");
+  fprintf(stderr, "\"%s\"\n", token_type[expected]);
   return 0;
 }
 
@@ -79,7 +74,7 @@ static void main_stmt() {
     match(__LINE__, RPAREN);
     body();
   } else
-    syntaxError(__LINE__, "no main function");
+    error(__LINE__, "no main function");
 }
 
 static void body() {
@@ -115,13 +110,13 @@ static void body() {
       case STRTYPE:
       case TRUE:
       case FALSE:
-        fprintf(stderr, "%s:%d:%d: warning: expression result unused \"%s\"\n",
-                sourcefile, line_no, __LINE__, token);
+        warning(__LINE__, "expression result unused");
+        fprintf(stderr, "\n");
         current_token = getToken();
         match(__LINE__, SEMI);
         break;
       default:
-        syntaxError(__LINE__, "unexpected token type ");
+        error(__LINE__, "unexpected token type ");
         fprintf(stderr, "\"%s\"\n", token);
         match(__LINE__, current_token);
         break;
@@ -147,13 +142,11 @@ static void var_stmt(TokenType dcl_type) {
   char *dcl_val = (char *)malloc(sizeof(char));
   if (current_token != ID) {
     if (current_token == SEMI) {
-      fprintf(stderr,
-              "%s:%d:%d: warning: declaration does not declare anything.\n",
-              sourcefile, line_no, __LINE__);
+      warning(__LINE__, "declaration does not declare anything");
+      fprintf(stderr, "\n");  
     } else {
-      fprintf(stderr, "%s:%d:%d: error: unexpected identifier \"%s\"\n",
-              sourcefile, line_no, __LINE__, token);
-      ERROR++;
+      error(__LINE__, "expected identifier ");
+      fprintf(stderr, "\n");  
       current_token = getToken();
     }
   } else {
@@ -163,21 +156,21 @@ static void var_stmt(TokenType dcl_type) {
       switch (dcl_type) {
         case STRING:
           if (current_token != STRTYPE && current_token != ID) {
-            typeError(__LINE__, "implicit conversion ");
+            warning(__LINE__, "implicit conversion ");
             fprintf(stderr, "\"%s\"\n", token);
           };
           dcl_type = current_token;
           break;
         case CHAR:
           if (current_token != CHARTYPE && current_token != ID) {
-            typeError(__LINE__, "implicit conversion ");
+            warning(__LINE__, "implicit conversion ");
             fprintf(stderr, "\"%s\"\n", token);
           };
           dcl_type = current_token;
           break;
         case INT:
           if (current_token != NUM && current_token != ID) {
-            typeError(__LINE__, "implicit conversion ");
+            warning(__LINE__, "implicit conversion ");
             fprintf(stderr, "\"%s\"\n", token);
           };
           dcl_type = current_token;
@@ -185,7 +178,7 @@ static void var_stmt(TokenType dcl_type) {
         case BOOLEAN:
           if (current_token != TRUE && current_token != FALSE &&
               current_token != ID) {
-            typeError(__LINE__, "implicit conversion ");
+            warning(__LINE__, "implicit conversion ");
             fprintf(stderr, "\"%s\"\n", token);
           }
           dcl_type = current_token;
@@ -214,8 +207,6 @@ static void var_stmt(TokenType dcl_type) {
           dcl_val = "0";
           break;
         default:
-          syntaxError(__LINE__, "unexpected token ");
-          fprintf(stderr, "\"%s\"\n", token);
           break;
       }
       st_insert(dcl_name, 0, dcl_val, dcl_type);
@@ -314,10 +305,8 @@ static void factor() {
       match(__LINE__, current_token);
       break;
     default:
-      fprintf(stderr, "%s:%d:%d: error: unexpected expression \"%s\"\n",
-              sourcefile, line_no, __LINE__, token);
-      ERROR++;
-      fprintf(stderr, "%d error generated.\n", ERROR);
-      exit(1);
+      error(__LINE__, "expected expression ");
+      fprintf(stderr, "\n");
+      break;
   }
 }
