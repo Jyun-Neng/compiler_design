@@ -1,7 +1,7 @@
 #include "cgen.h"
 
 static char *dcl_name;
-int m = 0;
+static int label_cnt = 0;
 
 static void emit_prologue();
 static void emit_includes();
@@ -15,6 +15,8 @@ static void emit_mod(Operand *op1, Operand *op2);
 static void emit_assign(Operand *op1, Operand *op2);
 static void emit_print(Operand *op1);
 static void emit_println(Operand *op1);
+static void emit_cmp(char *cmp, Operand *op1, Operand *op2);
+static void emit_label(int label_cnt);
 
 void cgen(char operation) {
   switch (operation) {
@@ -57,6 +59,24 @@ void codegen(Operator *opr, Operand *op1, Operand *op2) {
       case PRINTLN:
         emit_println(op1);
         break;
+      case GE:
+        emit_cmp ("JGE", op1, op2);
+        break;  
+      case GT:
+        emit_cmp ("JG", op1, op2);
+        break;  
+      case LE:
+        emit_cmp ("JLE", op1, op2);
+        break;  
+      case LT:
+        emit_cmp ("JL", op1, op2);
+        break;  
+      case EQ:
+        emit_cmp ("JE", op1, op2);
+        break;  
+      case NE:
+        emit_cmp ("JNE", op1, op2);
+        break;  
       default:
         fprintf(stderr, "%s:%d:%d: error: unexpected expression\n", sourcefile,
                 line_no, __LINE__);
@@ -80,6 +100,10 @@ static void emit_includes() {
   fprintf(code, "INCLUDELIB Irvine32.lib\n");
   fprintf(code, "INCLUDELIB Kernel32.lib\n");
   fprintf(code, "INCLUDELIB User32.lib\n");
+}
+
+static void emit_label(int label_cnt) {
+  fprintf(code, "_L%d:\n", label_cnt);
 }
 
 static void emit_epilogue() {
@@ -313,4 +337,36 @@ static void emit_println(Operand *op1) {
   }
   free(op1);
   fprintf(code, "\tCALL CRLF\n");
+}
+
+static void emit_cmp(char *cmp, Operand *op1, Operand *op2) {
+  int tmp_cnt = label_cnt;  
+  Symbol *result = malloc(sizeof(Symbol));
+  char *val = "0";
+  dcl_name = (char *)malloc(MAXTOKENLEN * sizeof(char));
+  dcl_name = "_S";
+  st_insert(dcl_name, ++dcl_n, val, BOOLEAN);
+  result = st_lookup(dcl_name, dcl_n);
+  if (op1->op_type != NUM && op2->op_type != NUM)
+    fprintf(stdout, "%d, operation type error!\n", line_no);
+
+  if (op2->n != 0)
+    fprintf(code, "\tMOV EAX, %s%d\n", op2->op_name, op2->n);
+  else
+    fprintf(code, "\tMOV EAX, %s\n", op2->op_name);
+  if (op1->n != 0)
+    fprintf(code, "\tCMP EAX, %s%d\n", op1->op_name, op1->n);
+  else
+    fprintf(code, "\tCMP EAX, %s\n", op1->op_name);
+  fprintf(code, "\t%s _L%d\n", cmp, label_cnt);
+  fprintf(code, "\tMOV EBX,  0\n");
+  fprintf(code, "\tJMP _L%d\n", ++label_cnt);
+  emit_label(tmp_cnt);
+  fprintf(code, "\tMOV EBX,  1\n");
+  emit_label(label_cnt++);
+  fprintf(code, "\tMOV %s%d, EBX\n", result->dcl_name, result->n);
+  push_operand(result);
+
+  free(op1);
+  free(op2);
 }
